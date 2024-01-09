@@ -35,11 +35,14 @@ namespace LibProj
             updateTimer = new Timer();
             updateTimer.Interval = 1000 * 20; 
             updateTimer.Tick += UpdateCurrentPeopleCountLabel;
+            updateTimer.Tick += UpdateMonthUsersLabel;
+            updateTimer.Tick += UpdateLabelDailyUsersAvg;
             updateTimer.Start();
 
             
             UpdateCurrentPeopleCountLabel(null, null);
-
+            UpdateMonthUsersLabel(null, null);
+            UpdateLabelDailyUsersAvg(null, null);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -49,11 +52,61 @@ namespace LibProj
             LoadColumnChart();
            
             LoadDoughnutChart();
-       
+            
 
         }
 
-     
+        private void UpdateMonthUsersLabel(object sender, EventArgs e)
+        {
+            using (SQLiteConnection connection = new SQLiteConnection(conString))
+            {
+                connection.Open();
+
+               
+                string query = "SELECT COUNT(*) AS EntradaCount FROM mobilidade WHERE tipo = 'Entrada' AND strftime('%Y-%m', sqltime) = strftime('%Y-%m', 'now')";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    object result = command.ExecuteScalar();
+
+                    if (result != null && result != DBNull.Value)
+                    {
+                        int entradaCount = Convert.ToInt32(result);
+                        labelMonthUsersLabel.Text = $"{entradaCount}";
+                    }
+                    else
+                    {
+                        labelMonthUsersLabel.Text = "N/A";
+                    }
+                }
+            }
+        }
+
+        private void UpdateLabelDailyUsersAvg(object sender, EventArgs e)
+        {
+            using (SQLiteConnection connection = new SQLiteConnection(conString))
+            {
+                connection.Open();
+
+                
+                string query = "SELECT AVG(DailyCount) AS AverageDailyUsers FROM (SELECT COUNT(*) AS DailyCount FROM mobilidade WHERE tipo = 'Entrada' GROUP BY strftime('%Y-%m-%d', sqltime))";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    object result = command.ExecuteScalar();
+
+                    if (result != null && result != DBNull.Value)
+                    {
+                        double averageDailyUsers = Convert.ToDouble(result);
+                        labelDailyUsersMedia.Text = $"{averageDailyUsers:F2}"; 
+                    }
+                    else
+                    {
+                        labelDailyUsersMedia.Text = "N/A";
+                    }
+                }
+            }
+        }
 
         private void LoadColumnChart()
         {
