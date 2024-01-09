@@ -107,5 +107,56 @@ namespace LibProj
         { 
             
         }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            
+
+                Form1 form1 = new Form1();
+                form1.Show();
+                this.Hide();
+           
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "CSV Files (*.csv)|*.csv";
+            saveFileDialog.Title = "Salvar ficheiro CSV";
+
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+              
+                string filePath = saveFileDialog.FileName;
+
+               
+                using (System.IO.StreamWriter streamWriter = new System.IO.StreamWriter(filePath))
+                {
+                    
+                    for (int i = 0; i < dataGridView1.Columns.Count; i++)
+                    {
+                        streamWriter.Write(dataGridView1.Columns[i].HeaderText);
+                        if (i < dataGridView1.Columns.Count - 1)
+                            streamWriter.Write(",");
+                    }
+                    streamWriter.WriteLine();
+
+                    
+                    foreach (DataGridViewRow row in dataGridView1.Rows)
+                    {
+                        for (int i = 0; i < dataGridView1.Columns.Count; i++)
+                        {
+                            streamWriter.Write(row.Cells[i].Value);
+                            if (i < dataGridView1.Columns.Count - 1)
+                                streamWriter.Write(",");
+                        }
+                        streamWriter.WriteLine();
+                    }
+                }
+
+                MessageBox.Show("Ficheiro CSV exportado com sucesso.", "Exportado com sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
     }
 }
