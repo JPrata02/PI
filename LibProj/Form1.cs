@@ -19,7 +19,7 @@ namespace LibProj
 
         private Timer updateTimer = new Timer();
 
-        string teste = "testess";
+        string teste = "testessss";
 
         string doughnutSeriesName = "Contagem";
         string columnSeriesName = "Contagem";
