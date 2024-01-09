@@ -19,7 +19,7 @@ namespace LibProj
 
         private Timer updateTimer = new Timer();
 
-        string teste = "testessss";
+       
 
         string doughnutSeriesName = "Contagem";
         string columnSeriesName = "Contagem";
@@ -32,8 +32,14 @@ namespace LibProj
         public Form1()
         {
             InitializeComponent();
-           
-       
+            updateTimer = new Timer();
+            updateTimer.Interval = 1000 * 20; 
+            updateTimer.Tick += UpdateCurrentPeopleCountLabel;
+            updateTimer.Start();
+
+            
+            UpdateCurrentPeopleCountLabel(null, null);
+
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -41,7 +47,7 @@ namespace LibProj
           
            
             LoadColumnChart();
-        
+           
             LoadDoughnutChart();
        
 
@@ -98,6 +104,43 @@ namespace LibProj
             chart1.ChartAreas[0].BackColor = Color.LightBlue;
             chart2.Invalidate();
         }
+
+        private void UpdateCurrentPeopleCountLabel(object sender, EventArgs e)
+        {
+            using (SQLiteConnection connection = new SQLiteConnection(conString))
+            {
+                connection.Open();
+
+               
+                string query = "SELECT tipo, COUNT(*) as Count FROM mobilidade WHERE sqltime >= datetime('now', 'start of day') GROUP BY tipo";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        int currentCount = 0;
+
+                        while (reader.Read())
+                        {
+                            string tipo = reader["tipo"].ToString();
+                            int count = Convert.ToInt32(reader["Count"]);
+
+                            if (tipo == "Entrada")
+                            {
+                                currentCount += count;
+                            }
+                            else if (tipo == "Saida")
+                            {
+                                currentCount -= count;
+                            }
+                        }
+
+                        labelPeopleCount.Text = $"{Math.Max(0, currentCount)}"; 
+                    }
+                }
+            }
+        }
+
 
         private void button1_Click(object sender, EventArgs e)
         {
