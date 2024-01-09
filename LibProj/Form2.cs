@@ -29,12 +29,12 @@ namespace LibProj
             DateTime endDate = dateTimePickerEnd.Value;
 
 
-            YourMethod(startDate, endDate);
+            showCount(startDate, endDate);
 
         }
 
 
-        private void YourMethod(DateTime startDate, DateTime endDate)
+        private void showCount(DateTime startDate, DateTime endDate)
         {
             using (SQLiteConnection connection = new SQLiteConnection(conStr))
             {
