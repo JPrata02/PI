@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Data.SQLite;
 using System.Data;
+using System.Linq;
 
 namespace LibProj
 {
@@ -19,16 +20,8 @@ namespace LibProj
 
         private Timer updateTimer = new Timer();
 
-       
+      
 
-        string doughnutSeriesName = "Contagem";
-        string columnSeriesName = "Contagem";
-
-        List<string> xDoughnut = new List<string> { "Seg", "Ter", "Qua", "Qui", "Sex" };
-        List<string> yDoughnut = new List<string> { "20", "20", "15", "10", "35" };
-
-        List<string> xColumn = new List<string> { "1(Seg)", "2(Ter)", "3(Qua)", "4(Qui)", "5(Sex)" };
-        List<string> yColumn = new List<string> { "20", "20", "15", "10", "35" };
         public Form1()
         {
             InitializeComponent();
@@ -47,11 +40,12 @@ namespace LibProj
 
         private void Form1_Load(object sender, EventArgs e)
         {
-          
-           
-            LoadColumnChart();
-           
-            LoadDoughnutChart();
+
+
+            ShowEntradasPerDayColumnGraph();
+
+
+            ShowEntradasPerWeekDayDoughnutChart();
             
 
         }
@@ -108,56 +102,88 @@ namespace LibProj
             }
         }
 
-        private void LoadColumnChart()
+        private void ShowEntradasPerDayColumnGraph()
         {
-            chart1.Series.Clear();
-
-
-            chart1.Series.Add(columnSeriesName);
-            chart1.Series[columnSeriesName].Color = Color.Green;
-
-            if (xColumn.Count != yColumn.Count)
+            using (SQLiteConnection connection = new SQLiteConnection(conString))
             {
-                MessageBox.Show("The lists xColumn and yColumn must have the same number of elements.");
-                return;
+                connection.Open();
+
+                string query = "SELECT strftime('%d-%m', sqltime) as day, " +
+                               "COUNT(CASE WHEN tipo = 'Entrada' THEN 1 END) AS Contagem " +
+                               "FROM mobilidade GROUP BY day";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        chart1.Series.Clear(); 
+                        chart1.Series.Add("Contagem");
+
+                        while (reader.Read())
+                        {
+                            string day = reader["day"].ToString();
+                            int peopleCount = Convert.ToInt32(reader["Contagem"]);
+
+                            chart1.Series["Contagem"].Points.AddXY(day, peopleCount);
+                        }
+                    }
+                }
             }
-
-
-            for (int i = 0; i < xColumn.Count; i++)
-            {
-                chart1.Series[columnSeriesName].Points.AddXY(xColumn[i], yColumn[i]);
-            }
-
-
-            chart1.Series[columnSeriesName].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Column;
-
-            chart1.BackColor = Color.LightBlue;
-            chart1.ChartAreas[0].BackColor = Color.LightBlue;
-
-            chart1.Invalidate();
         }
 
-        private void LoadDoughnutChart()
+        private void ShowEntradasPerWeekDayDoughnutChart()
         {
-            chart2.Series.Clear();
-            chart2.Series.Add(doughnutSeriesName);
-          
-          
-
-            for (int i = 0; i < xDoughnut.Count; i++)
+            using (SQLiteConnection connection = new SQLiteConnection(conString))
             {
-                chart2.Series[doughnutSeriesName].IsValueShownAsLabel = true;
-                chart2.Series[doughnutSeriesName].Points.AddXY(xDoughnut[i], yDoughnut[i]);
+                connection.Open();
+
+                string query = "SELECT strftime('%w', sqltime) as weekday, " +
+                               "COUNT(CASE WHEN tipo = 'Entrada' THEN 1 END) AS Contagem " +
+                               "FROM mobilidade WHERE weekday <> '0' GROUP BY weekday";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        chart2.Series.Clear(); 
+                        chart2.Series.Add("Contagem"); 
+                        chart2.Series["Contagem"].ChartType = SeriesChartType.Doughnut;
+                        chart2.Series["Contagem"].IsValueShownAsLabel = true; 
+
+                        int totalPeopleCount = 0;
+
+                        while (reader.Read())
+                        {
+                            int weekdayNumber = Convert.ToInt32(reader["weekday"]);
+                            string weekdayName = GetWeekDayName(weekdayNumber);
+                            int peopleCount = Convert.ToInt32(reader["Contagem"]);
+
+                            DataPoint dataPoint = new DataPoint();
+                            dataPoint.SetValueY(peopleCount);
+                            dataPoint.AxisLabel = weekdayName;
+                            chart2.Series["Contagem"].Points.Add(dataPoint);
+
+                            totalPeopleCount += peopleCount;
+                        }
+
+                        if (totalPeopleCount > 0)
+                        {
+                           
+                            foreach (DataPoint point in chart2.Series["Contagem"].Points)
+                            {
+                                double percentage = (point.YValues[0] / totalPeopleCount) * 100;
+                                point.Label = $"{point.AxisLabel}: {percentage:F2}%";
+                            }
+                        }
+                    }
+                }
             }
-
-            chart2.Series[doughnutSeriesName].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Doughnut;
-            chart2.Series[doughnutSeriesName]["DoughnutRadius"] = "30%";
-
-            chart1.BackColor = Color.LightBlue;
-            chart1.ChartAreas[0].BackColor = Color.LightBlue;
-            chart2.Invalidate();
         }
-
+        private string GetWeekDayName(int weekdayNumber)
+        {
+            string[] weekDays = { "Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab" };
+            return weekDays[weekdayNumber];
+        }
         private void UpdateCurrentPeopleCountLabel(object sender, EventArgs e)
         {
             using (SQLiteConnection connection = new SQLiteConnection(conString))
