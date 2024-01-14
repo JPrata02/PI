@@ -42,10 +42,10 @@ namespace LibProj
         {
 
 
-            ShowEntradasPerDayColumnGraph();
+            ShowContagemPerDayColumnGraph();
 
 
-            ShowEntradasPerWeekDayDoughnutChart();
+            ShowContagemPerWeekDayDoughnutChart();
             
 
         }
@@ -102,7 +102,7 @@ namespace LibProj
             }
         }
 
-        private void ShowEntradasPerDayColumnGraph()
+        private void ShowContagemPerDayColumnGraph()
         {
             using (SQLiteConnection connection = new SQLiteConnection(conString))
             {
@@ -126,12 +126,14 @@ namespace LibProj
 
                             chart1.Series["Contagem"].Points.AddXY(day, peopleCount);
                         }
+                        chart1.Titles.Clear();
+                        chart1.Titles.Add("Contagem Mensal de Presenças");
                     }
                 }
             }
         }
 
-        private void ShowEntradasPerWeekDayDoughnutChart()
+        private void ShowContagemPerWeekDayDoughnutChart()
         {
             using (SQLiteConnection connection = new SQLiteConnection(conString))
             {
@@ -165,6 +167,9 @@ namespace LibProj
 
                             totalPeopleCount += peopleCount;
                         }
+
+                        chart2.Titles.Clear();
+                        chart2.Titles.Add("Presenças por dia da semana(%)");
 
                         if (totalPeopleCount > 0)
                         {

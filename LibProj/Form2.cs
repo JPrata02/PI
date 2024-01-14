@@ -5,10 +5,12 @@ using System.Data;
 using System.Data.SQLite;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using OfficeOpenXml;
 
 namespace LibProj
 {
@@ -118,22 +120,19 @@ namespace LibProj
            
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void csvWrite(object sender, EventArgs e)
         {
-            
+
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "CSV Files (*.csv)|*.csv";
             saveFileDialog.Title = "Salvar ficheiro CSV";
 
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
-              
                 string filePath = saveFileDialog.FileName;
 
-               
-                using (System.IO.StreamWriter streamWriter = new System.IO.StreamWriter(filePath))
+                using (StreamWriter streamWriter = new StreamWriter(filePath, false, Encoding.UTF8))
                 {
-                    
                     for (int i = 0; i < dataGridView1.Columns.Count; i++)
                     {
                         streamWriter.Write(dataGridView1.Columns[i].HeaderText);
@@ -142,7 +141,6 @@ namespace LibProj
                     }
                     streamWriter.WriteLine();
 
-                    
                     foreach (DataGridViewRow row in dataGridView1.Rows)
                     {
                         for (int i = 0; i < dataGridView1.Columns.Count; i++)
@@ -156,6 +154,55 @@ namespace LibProj
                 }
 
                 MessageBox.Show("Ficheiro CSV exportado com sucesso.", "Exportado com sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void excelWrite(object sender, EventArgs e)
+        {
+            try
+            {
+                
+                OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+
+                using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+                {
+                    saveFileDialog.Filter = "Excel Files (*.xlsx)|*.xlsx";
+                    saveFileDialog.Title = "Salvar ficheiro Excel";
+
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        string filePath = saveFileDialog.FileName;
+
+                        using (OfficeOpenXml.ExcelPackage package = new ExcelPackage())
+                        {
+                            OfficeOpenXml.ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Planilha1");
+
+                            
+                            for (int i = 1; i <= dataGridView1.Columns.Count; i++)
+                            {
+                                worksheet.Cells[1, i].Value = dataGridView1.Columns[i - 1].HeaderText;
+                            }
+
+                           
+                            for (int i = 1; i <= dataGridView1.Rows.Count; i++)
+                            {
+                                for (int j = 1; j <= dataGridView1.Columns.Count; j++)
+                                {
+                                    worksheet.Cells[i + 1, j].Value = dataGridView1.Rows[i - 1].Cells[j - 1].Value;
+                                }
+                            }
+
+                            
+                            package.SaveAs(new FileInfo(filePath));
+                        }
+
+                        MessageBox.Show("Ficheiro Excel exportado com sucesso.", "Exportado com sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ocorreu um erro ao exportar para o Excel: " + ex.Message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
