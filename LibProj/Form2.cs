@@ -71,9 +71,8 @@ namespace LibProj
                                 DateTime currentDateTime = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, hour, 0, 0);
                                 DateTime nextDateTime = currentDateTime.AddHours(1);
 
-                               
                                 var hourRows = dataTable.AsEnumerable()
-                                    .Where(row => row.Field<string>("hour_of_day") == hour.ToString()
+                                    .Where(row => int.Parse(row.Field<string>("hour_of_day")) == hour  // Convert to int for comparison
                                                && row.Field<DateTime>("sqltime") >= currentDateTime
                                                && row.Field<DateTime>("sqltime") < nextDateTime);
                                 int totalCount = 0;
@@ -86,7 +85,7 @@ namespace LibProj
                                     totalCount += entradaCount - saidaCount;
                                 }
 
-                                cumulativeCount += totalCount; 
+                                cumulativeCount += totalCount;
                                 newRow[hour.ToString()] = cumulativeCount;
                             }
 
