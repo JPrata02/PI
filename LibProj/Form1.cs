@@ -30,12 +30,20 @@ namespace LibProj
             updateTimer.Tick += UpdateCurrentPeopleCountLabel;
             updateTimer.Tick += UpdateMonthUsersLabel;
             updateTimer.Tick += UpdateLabelDailyUsersAvg;
+            updateTimer.Tick += UpdateTimeLabel;
             updateTimer.Start();
 
             
             UpdateCurrentPeopleCountLabel(null, null);
             UpdateMonthUsersLabel(null, null);
             UpdateLabelDailyUsersAvg(null, null);
+            UpdateTimeLabel(null, null);
+        }
+
+        private void UpdateTimeLabel(object sender, EventArgs e)
+        {
+            label4.Text = DateTime.Now.ToString("dd/MM/yyyy");
+            label5.Text = DateTime.Now.ToString("HH:mm");
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -233,6 +241,8 @@ namespace LibProj
             form2.Show();
             this.Hide();
         }
+
+       
     }
 
 

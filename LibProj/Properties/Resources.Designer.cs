@@ -103,6 +103,26 @@ namespace LibProj.Properties {
         /// <summary>
         ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap logolib__1__removebg_preview {
+            get {
+                object obj = ResourceManager.GetObject("logolib__1_-removebg-preview", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap logolib__1_1 {
+            get {
+                object obj = ResourceManager.GetObject("logolib (1)1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap logolib1 {
             get {
                 object obj = ResourceManager.GetObject("logolib1", resourceCulture);
