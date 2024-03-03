@@ -30,7 +30,7 @@ namespace LibProj
             DateTime startDate = dateTimePickerStart.Value;
             DateTime endDate = dateTimePickerEnd.Value;
 
-
+            showMonthlyCount(startDate);
             showCount(startDate, endDate);
 
         }
@@ -72,7 +72,7 @@ namespace LibProj
                                 DateTime nextDateTime = currentDateTime.AddHours(1);
 
                                 var hourRows = dataTable.AsEnumerable()
-                                    .Where(row => int.Parse(row.Field<string>("hour_of_day")) == hour  // Convert to int for comparison
+                                    .Where(row => int.Parse(row.Field<string>("hour_of_day")) == hour  
                                                && row.Field<DateTime>("sqltime") >= currentDateTime
                                                && row.Field<DateTime>("sqltime") < nextDateTime);
                                 int totalCount = 0;
@@ -102,7 +102,51 @@ namespace LibProj
 
         }
 
+        private void showMonthlyCount(DateTime startDate)
+        {
+            using (SQLiteConnection connection = new SQLiteConnection(conStr))
+            {
+                connection.Open();
 
+                string query = "SELECT *, strftime('%m', sqltime) as month_of_year FROM mobilidade WHERE strftime('%Y', sqltime) = @Year";
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Year", startDate.Year.ToString());
+
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        int[] monthlyCounts = new int[12];
+
+                        while (reader.Read())
+                        {
+                            int monthIndex = Convert.ToInt32(reader["month_of_year"]) - 1;
+                            int entradaCount = reader["tipo"].ToString() == "Entrada" ? 1 : 0;
+                            monthlyCounts[monthIndex] += entradaCount;
+                        }
+
+                        DataTable resultTable = new DataTable();
+                        resultTable.Columns.Add("Ano/Mês", typeof(string)); 
+
+                        for (int month = 1; month <= 12; month++)
+                        {
+                            resultTable.Columns.Add(CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month).Substring(0, 1).ToUpper() + CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month).Substring(1), typeof(int));
+                        }
+
+                        DataRow newRow = resultTable.NewRow();
+                        newRow["Ano/Mês"] = startDate.Year;
+
+                        for (int i = 0; i < 12; i++)
+                        {
+                            newRow[i + 1] = monthlyCounts[i];
+                        }
+
+                        resultTable.Rows.Add(newRow);
+
+                        dataGridView2.DataSource = resultTable;
+                    }
+                }
+            }
+        }
 
         private void Form2_Load(object sender, EventArgs e)
         { 
@@ -204,5 +248,7 @@ namespace LibProj
                 MessageBox.Show("Ocorreu um erro ao exportar para o Excel: " + ex.Message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+     
     }
 }
